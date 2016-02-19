@@ -1,0 +1,15 @@
+[submodule "web"]
+	path = web
+	url = git@github.com:reacthtmlpacktomchentwcom/web.git
+[submodule "build"]
+	path = build
+	url = git@github.com:reacthtmlpacktomchentwcom/build.git
+[submodule "node"]
+	path = node
+	url = git@github.com:reacthtmlpacktomchentwcom/node.git
+[submodule "nginx"]
+	path = nginx
+	url = git@github.com:reacthtmlpacktomchentwcom/nginx.git
+[submodule "secret"]
+	path = secret
+	url = git@github.com:tomchentw/reacthtmlpack.tomchentw.com.git
