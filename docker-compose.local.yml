@@ -1,0 +1,61 @@
+# Setup: `docker-compose -f docker-compose.local.yml rm web node && docker-compose -f docker-compose.local.yml build && docker-compose -f docker-compose.local.yml up`
+# - Note nginx is currently unused
+#
+#######################################
+# node
+#######################################
+node:
+  build: node
+  command: npm run dev
+  environment:
+    - DOCKER_BUILD_IMAGE_NAME=meta_build
+    - DOCKER_LOCAL_NPM_CONTAINER_NAME=meta_local-npm_1
+  volumes:
+    # http://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/
+    - /var/run/docker.sock:/var/run/docker.sock
+  volumes_from:
+    - web:ro
+    - secret:ro
+  ports:
+    - "3000:3000"
+  links:
+    - redis
+
+#######################################
+# web
+#######################################
+web:
+  build: web
+
+#######################################
+# secret
+#######################################
+secret:
+  build: secret
+
+#######################################
+# build
+#######################################
+build:
+  build: build
+  environment:
+    - MOUNT_DIRPATH=/opt/mount
+  volumes:
+    - ./__fixtures__/build:/opt/mount
+  links:
+    - local-npm
+
+#######################################
+# local-npm
+#######################################
+local-npm:
+  # https://github.com/OmgImAlexis/docker-npm-cache/blob/master/Dockerfile
+  image: thisisxo/docker-npm-cache
+  command: local-npm --url-base http://local-npm:5080 --remote http://192.168.1.10:5080 --remote-skim http://192.168.1.10:16984/skimdb
+
+#######################################
+# node
+#######################################
+redis:
+  image: redis
+

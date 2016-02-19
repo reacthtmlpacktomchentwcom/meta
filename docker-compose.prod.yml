@@ -1,0 +1,67 @@
+# Setup: 
+# 1. `docker-machine create --driver amazonec2 --amazonec2-region "us-west-2" --amazonec2-zone "c" --amazonec2-instance-type "t2.medium" reacthtmlpacktomchentwcom`
+# 2. `eval $(docker-machine env reacthtmlpacktomchentwcom)`
+# 3. `docker-compose --file docker-compose.prod.yml up -d`
+# - Note nginx is currently unused
+#
+#######################################
+# node
+#######################################
+node:
+  image: reacthtmlpacktomchentwcom/node
+  environment:
+    - DOCKER_BUILD_IMAGE_NAME=reacthtmlpacktomchentwcom/build
+    - DOCKER_LOCAL_NPM_CONTAINER_NAME=meta_local-npm_1
+  volumes:
+    # http://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/
+    - /var/run/docker.sock:/var/run/docker.sock
+  volumes_from:
+    - web:ro
+    - secret:ro
+  ports:
+    - "443:3000"
+  links:
+    - redis
+
+#######################################
+# web
+#######################################
+web:
+  image: reacthtmlpacktomchentwcom/web
+
+#######################################
+# secret
+#######################################
+secret:
+  image: tomchentw/reacthtmlpack.tomchentw.com
+
+#######################################
+# build
+#######################################
+build:
+  image: reacthtmlpacktomchentwcom/build
+  environment:
+    - MOUNT_DIRPATH=/opt/mount
+  volumes:
+    - ./__fixtures__/build:/opt/mount
+  links:
+    - local-npm
+
+#######################################
+# local-npm
+#######################################
+local-npm:
+  # https://github.com/OmgImAlexis/docker-npm-cache/blob/master/Dockerfile
+  image: thisisxo/docker-npm-cache
+  command: local-npm --url-base http://local-npm:5080
+  # Specifying command: won't work in ecs-cli
+  # command: local-npm --url-base http://local-npm:5080
+  # environment:
+  #   - HOST_IP=local-npm
+
+#######################################
+# node
+#######################################
+redis:
+  image: redis
+
